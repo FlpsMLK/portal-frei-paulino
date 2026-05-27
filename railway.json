@@ -1,5 +1,0 @@
-{
-  "deploy": {
-    "startCommand": "pip install -r requirements.txt && gunicorn portal.wsgi"
-  }
-}
