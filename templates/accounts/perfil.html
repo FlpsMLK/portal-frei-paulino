@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Meu Perfil{% endblock %}
+{% block content %}
+<div class="container mt-4" style="max-width:640px;">
+  <div class="perfil-header">
+    <div class="perfil-avatar">
+      {% if user.foto %}<img src="{{ user.foto.url }}" style="width:100%;height:100%;object-fit:cover;">
+      {% else %}{{ user.get_full_name|default:user.username|first|upper }}{% endif %}
+    </div>
+    <h4 style="color:white;margin-bottom:4px;">{{ user.get_full_name|default:user.username }}</h4>
+    <span style="background:rgba(255,255,255,0.2);padding:3px 12px;border-radius:20px;font-size:0.82rem;">{{ user.get_tipo_display }}</span>
+    {% if user.turma %}<br><small style="opacity:.8;margin-top:6px;display:block;">Turma {{ user.turma }}</small>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Editar Perfil</div>
+    <div class="card-body p-4">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-6"><label class="form-label">Nome</label>{{ form.first_name }}</div>
+          <div class="col-6"><label class="form-label">Sobrenome</label>{{ form.last_name }}</div>
+          <div class="col-12"><label class="form-label">E-mail</label>{{ form.email }}</div>
+          <div class="col-12"><label class="form-label">Turma</label>{{ form.turma }}</div>
+          <div class="col-12"><label class="form-label">Bio</label>{{ form.bio }}</div>
+          <div class="col-12"><label class="form-label">Foto de Perfil</label>{{ form.foto }}</div>
+        </div>
+        <button class="btn btn-primary mt-3" type="submit"><i class="bi bi-check-lg me-2"></i>Salvar</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

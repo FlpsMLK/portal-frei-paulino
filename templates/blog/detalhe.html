@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.titulo }} – Blog{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        {% if post.imagem_capa %}<img src="{{ post.imagem_capa.url }}" style="width:100%;max-height:380px;object-fit:cover;">{% endif %}
+        <div class="card-body p-4">
+          {% if post.empresa %}<span class="empresa-tag"><i class="bi bi-building me-1"></i>{{ post.empresa }}</span>{% endif %}
+          <h1 style="font-size:2rem;margin-top:10px;">{{ post.titulo }}</h1>
+          {% if post.subtitulo %}<p class="text-muted" style="font-size:1.1rem;">{{ post.subtitulo }}</p>{% endif %}
+          <div class="d-flex flex-wrap gap-3 align-items-center mb-4 pb-3 border-bottom">
+            <span class="small"><i class="bi bi-person-circle me-1 text-muted"></i>{{ post.autor.get_full_name|default:post.autor.username }}</span>
+            <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>{{ post.data_publicacao|date:"d/m/Y" }}</span>
+            {% for tag in post.get_tags_list %}<span class="tag-pill">{{ tag }}</span>{% endfor %}
+          </div>
+          <div style="line-height:1.9;font-size:1rem;">{{ post.conteudo|linebreaks }}</div>
+        </div>
+      </div>
+
+      <!-- COMENTÁRIOS -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-chat-square-text me-2"></i>Comentários ({{ comentarios.count }})</div>
+        <div class="card-body">
+          {% for c in comentarios %}
+          <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
+            <div style="width:36px;height:36px;background:var(--azul);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0;">{{ c.autor.username|first|upper }}</div>
+            <div>
+              <div class="fw-600 small">{{ c.autor.get_full_name|default:c.autor.username }} <span class="text-muted fw-normal">· {{ c.data|date:"d/m/Y" }}</span></div>
+              <p class="mb-0 small">{{ c.conteudo }}</p>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted small">Seja o primeiro a comentar.</p>
+          {% endfor %}
+
+          {% if user.is_authenticated %}
+          <h6 class="mt-3">Deixar um comentário</h6>
+          <form method="post">
+            {% csrf_token %}
+            {{ form.conteudo }}
+            <button class="btn btn-sm btn-primary mt-2" type="submit"><i class="bi bi-send me-1"></i>Enviar</button>
+          </form>
+          {% else %}
+          <p class="small text-muted mt-2"><a href="{% url 'login' %}">Faça login</a> para comentar.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="sidebar-widget">
+        <div class="sidebar-widget-header"><i class="bi bi-info-circle me-2"></i>Sobre o Post</div>
+        <div class="sidebar-widget-body small">
+          <p><strong>Autor:</strong> {{ post.autor.get_full_name|default:post.autor.username }}</p>
+          {% if post.categoria %}<p><strong>Categoria:</strong> {{ post.categoria }}</p>{% endif %}
+          {% if post.empresa %}<p><strong>Empresa:</strong> {{ post.empresa }}</p>{% endif %}
+          <p><strong>Publicado em:</strong> {{ post.data_publicacao|date:"d/m/Y H:i" }}</p>
+        </div>
+      </div>
+      {% if user == post.autor or user.is_staff %}
+      <a href="{% url 'editar_post' post.slug %}" class="btn btn-sm btn-outline-primary w-100 mb-2"><i class="bi bi-pencil me-1"></i>Editar Post</a>
+      {% endif %}
+      <a href="{% url 'lista_posts' %}" class="btn btn-sm btn-outline-secondary w-100"><i class="bi bi-arrow-left me-1"></i>Voltar ao Blog</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

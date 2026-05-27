@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}{{ tarefa.titulo }} – Tarefas{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-clipboard-check me-2"></i>{{ tarefa.titulo }}</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'lista_tarefas' %}">Tarefas</a></li><li class="breadcrumb-item active">{{ tarefa.titulo|truncatechars:40 }}</li></ol></nav>
+  </div>
+</div>
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex gap-2 mb-3">
+            <span class="badge-status status-{{ tarefa.status }}">{{ tarefa.get_status_display }}</span>
+            <span class="badge-cat">Turma: {{ tarefa.turma }}</span>
+          </div>
+          <h4 style="color:var(--azul);">{{ tarefa.titulo }}</h4>
+          <div style="line-height:1.9;margin:16px 0;">{{ tarefa.descricao|linebreaks }}</div>
+
+          {% if tarefa.criterios %}
+          <div class="alert alert-info mt-3">
+            <strong><i class="bi bi-star me-1"></i>Critérios de Avaliação:</strong>
+            <p class="mb-0 small mt-1">{{ tarefa.criterios|linebreaks }}</p>
+          </div>
+          {% endif %}
+
+          {% if tarefa.arquivo_enunciado %}
+          <a href="{{ tarefa.arquivo_enunciado.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Baixar Enunciado
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- PARA ALUNOS: formulário de entrega -->
+      {% if not user.is_professor %}
+        {% if entrega_existente %}
+        <div class="card">
+          <div class="card-header verde"><i class="bi bi-check-circle me-2"></i>Tarefa Entregue</div>
+          <div class="card-body">
+            <p class="small text-muted">Entregue em: {{ entrega_existente.data_entrega|date:"d/m/Y H:i" }}</p>
+            <a href="{{ entrega_existente.arquivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download me-1"></i>Ver minha entrega</a>
+            {% if entrega_existente.nota is not None %}
+            <div class="alert alert-success mt-3">
+              <strong>Nota: {{ entrega_existente.nota }}/10</strong>
+              {% if entrega_existente.feedback %}
+              <p class="small mb-0 mt-1"><strong>Feedback do professor:</strong> {{ entrega_existente.feedback }}</p>
+              {% endif %}
+            </div>
+            {% else %}
+            <p class="small text-muted mt-2"><i class="bi bi-hourglass me-1"></i>Aguardando avaliação do professor.</p>
+            {% endif %}
+          </div>
+        </div>
+        {% elif tarefa.prazo_expirado %}
+        <div class="alert alert-danger"><i class="bi bi-exclamation-circle me-2"></i>O prazo para entrega desta tarefa expirou.</div>
+        {% elif form %}
+        <div class="card">
+          <div class="card-header"><i class="bi bi-upload me-2"></i>Enviar Resposta</div>
+          <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="form-group">
+                <label class="form-label">Arquivo de Resposta *</label>
+                {{ form.arquivo }}
+              </div>
+              <div class="form-group">
+                <label class="form-label">Comentário (opcional)</label>
+                {{ form.comentario }}
+              </div>
+              <button class="btn btn-primary" type="submit"><i class="bi bi-send me-2"></i>Enviar Tarefa</button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+      {% endif %}
+
+      <!-- PARA PROFESSORES: lista de entregas -->
+      {% if user.is_professor and entregas is not None %}
+      <div class="card">
+        <div class="card-header"><i class="bi bi-people me-2"></i>Entregas dos Alunos ({{ entregas.count }})</div>
+        <div class="card-body">
+          {% for entrega in entregas %}
+          <div class="entrega-row d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <strong class="small">{{ entrega.aluno.get_full_name|default:entrega.aluno.username }}</strong>
+              <div class="small text-muted">Entregue em {{ entrega.data_entrega|date:"d/m/Y H:i" }}</div>
+              {% if entrega.nota is not None %}<span class="badge-status status-aberta">Nota: {{ entrega.nota }}/10</span>{% else %}<span class="badge-status status-rascunho">Pendente</span>{% endif %}
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{{ entrega.arquivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download"></i></a>
+              <a href="{% url 'avaliar_entrega' entrega.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-star me-1"></i>Avaliar</a>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted small">Nenhuma entrega ainda.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+      <div class="sidebar-widget">
+        <div class="sidebar-widget-header"><i class="bi bi-info-circle me-2"></i>Informações</div>
+        <div class="sidebar-widget-body small">
+          <p><strong>Professor:</strong> {{ tarefa.professor.get_full_name|default:tarefa.professor.username }}</p>
+          <p><strong>Turma:</strong> {{ tarefa.turma }}</p>
+          <p><strong>Criada em:</strong> {{ tarefa.data_criacao|date:"d/m/Y" }}</p>
+          <p class="{% if tarefa.prazo_expirado %}tarefa-prazo expirado{% endif %}">
+            <strong>Prazo:</strong> {{ tarefa.prazo|date:"d/m/Y H:i" }}
+            {% if tarefa.prazo_expirado %}<br><span><i class="bi bi-exclamation-triangle me-1"></i>Expirado</span>{% endif %}
+          </p>
+          <p><strong>Status:</strong> <span class="badge-status status-{{ tarefa.status }}">{{ tarefa.get_status_display }}</span></p>
+        </div>
+      </div>
+      <a href="{% url 'lista_tarefas' %}" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-left me-1"></i>Voltar às Tarefas</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

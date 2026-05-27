@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Notícias{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-newspaper me-2"></i>Notícias e Comunicados</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li><li class="breadcrumb-item active">Notícias</li></ol></nav>
+  </div>
+</div>
+<div class="container">
+  <!-- FILTROS -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'lista_noticias' %}" class="btn btn-sm {% if not categoria %}btn-primary{% else %}btn-outline-primary{% endif %}">Todas</a>
+    {% for val, label in noticias.model.CATEGORIA_CHOICES|default:"" %}{% endfor %}
+    <a href="?categoria=geral" class="btn btn-sm {% if categoria == 'geral' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Geral</a>
+    <a href="?categoria=academico" class="btn btn-sm {% if categoria == 'academico' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Acadêmico</a>
+    <a href="?categoria=cultural" class="btn btn-sm {% if categoria == 'cultural' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Cultural</a>
+    <a href="?categoria=esportivo" class="btn btn-sm {% if categoria == 'esportivo' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Esportivo</a>
+    <a href="?categoria=comunicado" class="btn btn-sm {% if categoria == 'comunicado' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Comunicado</a>
+  </div>
+
+  <div class="row g-3">
+    {% for n in noticias %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100">
+        {% if n.imagem %}<img src="{{ n.imagem.url }}" class="card-img-top" style="height:180px;object-fit:cover;">{% else %}<div style="height:100px;background:linear-gradient(135deg,var(--azul),var(--azul-medio));display:flex;align-items:center;justify-content:center;font-size:2.5rem;">📰</div>{% endif %}
+        <div class="card-body">
+          <div class="noticia-meta">
+            <span class="badge-cat">{{ n.get_categoria_display }}</span>
+            <span>{{ n.data_publicacao|date:"d/m/Y" }}</span>
+          </div>
+          <h6 style="color:var(--azul);font-family:'Playfair Display',serif;">{{ n.titulo }}</h6>
+          <p class="text-muted small">{{ n.conteudo|truncatewords:20 }}</p>
+          <a href="{% url 'detalhe_noticia' n.pk %}" class="btn btn-sm btn-outline-primary">Ler mais</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5"><div style="font-size:3rem;">📰</div><p>Nenhuma notícia publicada.</p></div>
+    {% endfor %}
+  </div>
+
+  {% if user.is_authenticated and user.is_professor %}
+  <div class="mt-4">
+    <a href="{% url 'criar_noticia' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Nova Notícia</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

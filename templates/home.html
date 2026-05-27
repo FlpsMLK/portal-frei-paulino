@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}Início – Portal Frei Paulino{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero-section">
+  <div class="container position-relative">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <span class="hero-badge">🎓 Portal Institucional 2024</span>
+        <h1 class="mb-3">Bem-vindo ao Portal<br>Frei Paulino</h1>
+        <p class="mb-4">Seu espaço de aprendizagem, comunicação e desenvolvimento profissional. Acesse notícias, eventos, blog de processos seletivos e muito mais.</p>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'cadastro' %}" class="btn btn-warning me-2"><i class="bi bi-person-plus me-1"></i>Criar Conta</a>
+        <a href="{% url 'login' %}" class="btn btn-outline-light">Entrar</a>
+        {% else %}
+        <a href="{% url 'lista_posts' %}" class="btn btn-warning me-2"><i class="bi bi-journal-richtext me-1"></i>Blog de Processos Seletivos</a>
+        <a href="{% url 'lista_tarefas' %}" class="btn btn-outline-light"><i class="bi bi-clipboard-check me-1"></i>Minhas Tarefas</a>
+        {% endif %}
+      </div>
+      <div class="col-lg-5 d-none d-lg-block text-end">
+        <div style="font-size: 8rem; opacity: 0.2;">🏫</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="bg-white border-bottom">
+  <div class="container py-3">
+    <div class="row text-center g-3">
+      <div class="col-6 col-md-3">
+        <div style="font-size: 1.7rem; font-weight: 700; color: var(--azul-medio);">📰</div>
+        <div class="small text-muted">Notícias & Comunicados</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="font-size: 1.7rem; font-weight: 700; color: var(--dourado);">📝</div>
+        <div class="small text-muted">Blog de Carreiras</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="font-size: 1.7rem; font-weight: 700; color: var(--verde);">💬</div>
+        <div class="small text-muted">Chat em Tempo Real</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="font-size: 1.7rem; font-weight: 700; color: var(--vermelho);">📁</div>
+        <div class="small text-muted">Gestão de Tarefas</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-lg-8">
+
+      <!-- DESTAQUES -->
+      {% if noticias_destaque %}
+      <h2 class="section-title">Destaques</h2>
+      <div class="row g-3 mb-4">
+        {% for n in noticias_destaque %}
+        <div class="col-md-{% if forloop.first %}12{% else %}6{% endif %}">
+          <a href="{% url 'detalhe_noticia' n.pk %}" class="text-decoration-none">
+            <div class="card h-100">
+              {% if n.imagem %}<img src="{{ n.imagem.url }}" class="card-img-top" style="height:{% if forloop.first %}240px{% else %}160px{% endif %};object-fit:cover" alt="{{ n.titulo }}">{% else %}<div style="height:{% if forloop.first %}120px{% else %}80px{% endif %};background:linear-gradient(135deg,var(--azul),var(--azul-medio));display:flex;align-items:center;justify-content:center;font-size:2rem;">📰</div>{% endif %}
+              <div class="card-body">
+                <div class="noticia-meta">
+                  <span class="badge-cat">{{ n.get_categoria_display }}</span>
+                  <span><i class="bi bi-calendar3 me-1"></i>{{ n.data_publicacao|date:"d/m/Y" }}</span>
+                </div>
+                <h5 style="color:var(--azul);font-size:{% if forloop.first %}1.2rem{% else %}1rem{% endif %}">{{ n.titulo }}</h5>
+                <p class="text-muted small mb-0">{{ n.conteudo|truncatewords:20 }}</p>
+              </div>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- NOTÍCIAS RECENTES -->
+      <h2 class="section-title">Notícias Recentes</h2>
+      <div class="row g-3 mb-4">
+        {% for n in noticias_recentes %}
+        <div class="col-md-6">
+          <div class="card h-100">
+            {% if n.imagem %}<img src="{{ n.imagem.url }}" class="card-img-top" style="height:160px;object-fit:cover">{% endif %}
+            <div class="card-body">
+              <div class="noticia-meta">
+                <span class="badge-cat">{{ n.get_categoria_display }}</span>
+                <span>{{ n.data_publicacao|date:"d/m/Y" }}</span>
+              </div>
+              <h6 style="color:var(--azul);font-family:'Playfair Display',serif;">{{ n.titulo }}</h6>
+              <p class="text-muted small">{{ n.conteudo|truncatewords:15 }}</p>
+              <a href="{% url 'detalhe_noticia' n.pk %}" class="btn btn-sm btn-outline-primary">Ler mais</a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12"><p class="text-muted">Nenhuma notícia publicada ainda.</p></div>
+        {% endfor %}
+      </div>
+
+      <!-- BLOG PROCESSOS SELETIVOS -->
+      {% if posts_recentes %}
+      <h2 class="section-title">Blog – Processos Seletivos</h2>
+      {% for post in posts_recentes %}
+      <div class="card mb-3">
+        <div class="card-body">
+          {% if post.empresa %}<span class="empresa-tag"><i class="bi bi-building me-1"></i>{{ post.empresa }}</span>{% endif %}
+          <h5><a href="{% url 'detalhe_post' post.slug %}" style="color:var(--azul);">{{ post.titulo }}</a></h5>
+          <p class="text-muted small mb-2">{{ post.subtitulo }}</p>
+          <div class="d-flex gap-2 align-items-center">
+            <span class="small text-muted"><i class="bi bi-person me-1"></i>{{ post.autor.get_full_name|default:post.autor.username }}</span>
+            <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>{{ post.data_publicacao|date:"d/m/Y" }}</span>
+            {% for tag in post.get_tags_list %}<span class="tag-pill">{{ tag }}</span>{% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      <a href="{% url 'lista_posts' %}" class="btn btn-outline-primary">Ver todos os posts <i class="bi bi-arrow-right ms-1"></i></a>
+      {% endif %}
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+      <!-- PRÓXIMOS EVENTOS -->
+      <div class="sidebar-widget">
+        <div class="sidebar-widget-header"><i class="bi bi-calendar-event me-2"></i>Próximos Eventos</div>
+        <div class="sidebar-widget-body">
+          {% for evento in eventos_proximos %}
+          <div class="evento-item">
+            <div class="evento-data">
+              <div class="dia">{{ evento.data_inicio|date:"d" }}</div>
+              <div class="mes">{{ evento.data_inicio|date:"M" }}</div>
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem;color:var(--azul);">{{ evento.titulo }}</div>
+              <div class="small text-muted">{{ evento.local }}</div>
+              <span class="badge-cat">{{ evento.get_categoria_display }}</span>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted small">Nenhum evento próximo.</p>
+          {% endfor %}
+          <a href="{% url 'lista_eventos' %}" class="btn btn-sm btn-outline-primary w-100 mt-2">Ver todos</a>
+        </div>
+      </div>
+
+      <!-- LINKS RÁPIDOS -->
+      {% if user.is_authenticated %}
+      <div class="sidebar-widget">
+        <div class="sidebar-widget-header"><i class="bi bi-lightning me-2"></i>Acesso Rápido</div>
+        <div class="sidebar-widget-body">
+          <div class="d-grid gap-2">
+            <a href="{% url 'lista_tarefas' %}" class="btn btn-sm btn-primary"><i class="bi bi-clipboard-check me-2"></i>Minhas Tarefas</a>
+            <a href="{% url 'lista_canais' %}" class="btn btn-sm btn-primary"><i class="bi bi-chat-dots me-2"></i>Chat</a>
+            <a href="{% url 'busca_posts' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-search me-2"></i>Buscar no Blog</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- BUSCA -->
+      <div class="sidebar-widget">
+        <div class="sidebar-widget-header dourado"><i class="bi bi-search me-2"></i>Buscar no Blog</div>
+        <div class="sidebar-widget-body">
+          <form action="{% url 'busca_posts' %}" method="get">
+            <div class="d-flex gap-2">
+              <input type="text" name="q" class="form-control form-control-sm" placeholder="Ex: Google, entrevista...">
+              <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-search"></i></button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

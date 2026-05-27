@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Cadastro – Portal Frei Paulino{% endblock %}
+{% block content %}
+<div class="container" style="max-width:520px;margin-top:50px;margin-bottom:60px;">
+  <div class="card">
+    <div class="card-header"><i class="bi bi-person-plus me-2"></i>Criar Conta</div>
+    <div class="card-body p-4">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Nome</label>
+            {{ form.first_name }}
+          </div>
+          <div class="col-6">
+            <label class="form-label">Sobrenome</label>
+            {{ form.last_name }}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Usuário</label>
+            {{ form.username }}
+            {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12">
+            <label class="form-label">E-mail</label>
+            {{ form.email }}
+          </div>
+          <div class="col-6">
+            <label class="form-label">Tipo de Conta</label>
+            {{ form.tipo }}
+          </div>
+          <div class="col-6">
+            <label class="form-label">Turma</label>
+            {{ form.turma }}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Senha</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors }}</div>{% endif %}
+          </div>
+          <div class="col-12">
+            <label class="form-label">Confirmar Senha</label>
+            {{ form.password2 }}
+          </div>
+        </div>
+        <button class="btn btn-primary w-100 mt-3" type="submit"><i class="bi bi-person-check me-2"></i>Criar Conta</button>
+      </form>
+      <hr>
+      <p class="text-center small mb-0">Já tem conta? <a href="{% url 'login' %}">Entrar</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Tarefas{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="bi bi-clipboard-check me-2"></i>
+      {% if user.is_professor %}Minhas Tarefas Criadas{% else %}Tarefas da Minha Turma{% endif %}
+    </h1>
+  </div>
+</div>
+<div class="container">
+  {% if user.is_authenticated and user.is_professor %}
+  <div class="mb-3">
+    <a href="{% url 'criar_tarefa' %}" class="btn btn-primary"><i class="bi bi-clipboard-plus me-2"></i>Nova Tarefa</a>
+  </div>
+  {% endif %}
+
+  <div class="row g-3">
+    {% for tarefa in tarefas %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge-status status-{{ tarefa.status }}">{{ tarefa.get_status_display }}</span>
+            {% if not user.is_professor and tarefa.pk in minhas_entregas %}
+            <span style="font-size:0.75rem;background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-weight:600;"><i class="bi bi-check-circle me-1"></i>Entregue</span>
+            {% endif %}
+          </div>
+          <h6 style="color:var(--azul);font-family:'Playfair Display',serif;">{{ tarefa.titulo }}</h6>
+          <p class="text-muted small mb-2">{{ tarefa.descricao|truncatewords:15 }}</p>
+          <div class="small text-muted mb-1"><i class="bi bi-people me-1"></i>Turma: {{ tarefa.turma }}</div>
+          <div class="small {% if tarefa.prazo_expirado %}tarefa-prazo expirado{% else %}text-muted{% endif %}">
+            <i class="bi bi-clock me-1"></i>Prazo: {{ tarefa.prazo|date:"d/m/Y H:i" }}
+            {% if tarefa.prazo_expirado %} (expirado){% endif %}
+          </div>
+          <a href="{% url 'detalhe_tarefa' tarefa.pk %}" class="btn btn-sm btn-outline-primary mt-3 w-100">Ver Detalhes</a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">
+      <div style="font-size:3rem;">📋</div>
+      <p>Nenhuma tarefa disponível.</p>
+      {% if user.is_professor %}<a href="{% url 'criar_tarefa' %}" class="btn btn-primary">Criar primeira tarefa</a>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

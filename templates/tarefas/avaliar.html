@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Avaliar Entrega{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1><i class="bi bi-star me-2"></i>Avaliar Entrega</h1></div></div>
+<div class="container" style="max-width:600px;">
+  <div class="card mb-3">
+    <div class="card-header dourado"><i class="bi bi-person me-2"></i>Entrega de {{ entrega.aluno.get_full_name|default:entrega.aluno.username }}</div>
+    <div class="card-body">
+      <p class="small text-muted">Tarefa: <strong>{{ entrega.tarefa.titulo }}</strong></p>
+      <p class="small text-muted">Entregue em: {{ entrega.data_entrega|date:"d/m/Y H:i" }}</p>
+      {% if entrega.comentario %}<p class="small"><strong>Comentário do aluno:</strong> {{ entrega.comentario }}</p>{% endif %}
+      <a href="{{ entrega.arquivo.url }}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-file-earmark me-1"></i>Ver Arquivo Entregue</a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><i class="bi bi-pencil-square me-2"></i>Dar Nota e Feedback</div>
+    <div class="card-body p-4">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Nota (0 a 10)</label>
+          {{ form.nota }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Feedback para o Aluno</label>
+          {{ form.feedback }}
+        </div>
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg me-2"></i>Salvar Avaliação</button>
+          <a href="{% url 'detalhe_tarefa' entrega.tarefa.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

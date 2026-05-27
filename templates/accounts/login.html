@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Entrar – Portal Frei Paulino{% endblock %}
+{% block content %}
+<div class="container" style="max-width:420px;margin-top:60px;margin-bottom:60px;">
+  <div class="card">
+    <div class="card-header text-center" style="padding:24px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🏫</div>
+      <h4 class="mb-0" style="color:white;font-family:'Playfair Display',serif;">Acessar Portal</h4>
+      <small style="opacity:.8;">Frei Paulino – Cândido Mota</small>
+    </div>
+    <div class="card-body p-4">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">{{ form.username.label }}</label>
+          {{ form.username }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.password.label }}</label>
+          {{ form.password }}
+        </div>
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <button class="btn btn-primary w-100 mt-2" type="submit"><i class="bi bi-box-arrow-in-right me-2"></i>Entrar</button>
+      </form>
+      <hr>
+      <p class="text-center small mb-0">Não tem conta? <a href="{% url 'cadastro' %}">Cadastre-se aqui</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}#{{ canal.nome }} – Chat{% endblock %}
+{% block content %}
+<div class="container mt-3">
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <a href="{% url 'lista_canais' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+    <div>
+      <h5 style="margin:0;color:var(--azul);"># {{ canal.nome }}</h5>
+      <small class="text-muted">{{ canal.get_tipo_display }} · {{ canal.membros.count }} membros</small>
+    </div>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+      {% for msg in mensagens %}
+      <div style="display:flex;flex-direction:column;{% if msg.remetente == user %}align-items:flex-end;{% endif %}">
+        {% if msg.remetente != user %}
+        <div class="small text-muted mb-1" style="margin-left:4px;">{{ msg.remetente.get_full_name|default:msg.remetente.username }}</div>
+        {% endif %}
+        <div class="msg-bubble {% if msg.remetente == user %}msg-mine{% else %}msg-other{% endif %}">
+          {{ msg.conteudo }}
+          <div class="msg-meta">{{ msg.data_hora|date:"H:i" }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="msgInput" class="form-control" placeholder="Digite uma mensagem... (Enter para enviar)">
+      <button id="sendBtn" class="btn btn-primary"><i class="bi bi-send"></i></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const canalId = {{ canal.pk }};
+const usuario = "{{ user.get_full_name|default:user.username|escapejs }}";
+const usuarioId = {{ user.pk }};
+
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsUrl = `${protocol}//${window.location.host}/ws/chat/${canalId}/`;
+let ws;
+
+function scrollToBottom() {
+  const el = document.getElementById('chatMessages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function appendMsg(msg, isMe, author, hora) {
+  const el = document.getElementById('chatMessages');
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `display:flex;flex-direction:column;${isMe ? 'align-items:flex-end;' : ''}`;
+  if (!isMe) {
+    const name = document.createElement('div');
+    name.className = 'small text-muted mb-1';
+    name.style.marginLeft = '4px';
+    name.textContent = author;
+    wrap.appendChild(name);
+  }
+  const bubble = document.createElement('div');
+  bubble.className = `msg-bubble ${isMe ? 'msg-mine' : 'msg-other'}`;
+  bubble.innerHTML = `${escapeHtml(msg)}<div class="msg-meta">${hora}</div>`;
+  wrap.appendChild(bubble);
+  el.appendChild(wrap);
+  scrollToBottom();
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(text));
+  return d.innerHTML;
+}
+
+function connect() {
+  ws = new WebSocket(wsUrl);
+  ws.onopen = () => console.log('Chat conectado');
+  ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    const isMe = data.usuario_id === usuarioId;
+    appendMsg(data.mensagem, isMe, data.usuario, data.hora);
+  };
+  ws.onclose = () => {
+    console.log('Desconectado. Reconectando em 3s...');
+    setTimeout(connect, 3000);
+  };
+}
+
+function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const msg = input.value.trim();
+  if (!msg || !ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ mensagem: msg }));
+  input.value = '';
+}
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('msgInput').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+connect();
+scrollToBottom();
+</script>
+{% endblock %}
