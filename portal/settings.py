@@ -5,6 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-portal-frei-paulino-2024-change-in-production'
 DEBUG = True
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['https://portal-frei-paulino-production.up.railway.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
